@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Hangman</title> 
+
+    <link rel="stylesheet" href="bootstrap/bootstrap.min.css">
+    <script src="jquery/jquery.js"></script>
+    <script src="bootstrap/bootstrap.min.js"></script>
+    <script src="main.js?n=1"></script>  <!-- This tells the HTML file to look at main.js for all user inputs-->
+
+    <style>
+        .row {
+            margin-bottom: 15px;
+        }
+    </style>
+
+    <style> 
+    .center {
+        text-align: center; 
+    }
+    </style>
+    
+
+</head>
+
+<body>
+    <header>
+      <h1 style="text-align:center;">Simple Hangman Web App</h1>  <!-- "text-align:center will allign words in center-->
+    </header>
+
+    <main>
+        <!-- At start of webpage, initial blank image of hangman structure will be generated in app.cpp, not in HTML file-->
+        <div>
+            <div class="center", id="pictureArea"> <!-- This id "pictureArea" is where the picture(s) will be loaded into -->
+        </div>
+
+        <br><br> <!-- \n NEW LINES USING br-->
+        <div class="container">
+            <div class="row"> <!--ROW 1-->
+                <div class="col-sm">
+                    <p id="lettersGuessed">LETTERS GUESSED INCORRECTLY: </p>
+                </div>
+                <div class="col-sm">
+                    <p style="font-size: 2em; text-align: center;" id = "underscores"></p> <!--BLANK OR EMPTY LETTERS WILL BE HERE-->
+                </div>
+                <div class = "col-sm">
+                    <p id="category">CATEGORY: </p><!--PLACE HOLDER FOR FORMATTING-->
+                </div>
+            </div> 
+        </div>
+
+        <div class="container">
+            <div class="row"> <!--ROW 1-->
+              <div class="col-sm">
+                <button type="submit" onclick="clickLetter('Q');document.getElementById('Q').disabled = true;document.getElementById('Q').style.opacity='0.5';" class="btn btn-dark form-control" id = "Q" >Q</button>
+              </div>
+              <div class="col-sm">
+                <button type="submit" onclick="clickLetter('W');document.getElementById('W').disabled = true;document.getElementById('W').style.opacity='0.5';" class="btn btn-dark form-control" id = "W" >W</button> 
+              </div>
+              <div class="col-sm">
+                <button type="submit" onclick="clickLetter('E');document.getElementById('E').disabled = true;document.getElementById('E').style.opacity='0.5';" class="btn btn-dark form-control" id = "E" >E</button> 
+              </div>
+              <div class="col-sm"> 
+                <button type="submit" onclick="clickLetter('R');document.getElementById('R').disabled = true;document.getElementById('R').style.opacity='0.5';" class="btn btn-dark form-control" id = "R" >R</button>
+              </div>
+              <div class="col-sm">
+                <button type="submit" onclick="clickLetter('T');document.getElementById('T').disabled = true;document.getElementById('T').style.opacity='0.5';" class = "btn btn-dark form-control" id = "T" >T</button>
+              </div>
+              <div class ="col-sm">
+                <button type="submit" onclick="clickLetter('Y');document.getElementById('Y').disabled = true;document.getElementById('Y').style.opacity='0.5';" class = "btn btn-dark form-control" id = "Y" >Y</button>
+              </div>
+              <div class ="col-sm">
+                <button type="submit" onclick="clickLetter('U');document.getElementById('U').disabled = true;document.getElementById('U').style.opacity='0.5';" class = "btn btn-dark form-control" id = "U" >U</button>
+              </div>
+              <div class ="col-sm">
+                <button type="submit" onclick="clickLetter('I');document.getElementById('I').disabled = true;document.getElementById('I').style.opacity='0.5';" class = "btn btn-dark form-control" id = "I" >I</button>
+              </div>
+              <div class ="col-sm">
+                <button type="submit" onclick="clickLetter('O');document.getElementById('O').disabled = true;document.getElementById('O').style.opacity='0.5';" class = "btn btn-dark form-control" id = "O" >O</button>
+              </div>
+              <div class ="col-sm">
+                <button type="submit" onclick="clickLetter('P');document.getElementById('P').disabled = true;document.getElementById('P').style.opacity='0.5';" class = "btn btn-dark form-control" id = "P" >P</button>
+              </div>
+            </div>
+            <div class="row"> <!-- ROW 2-->
+                <div class ="col-sm">
+                    <button type="submit" onclick="clickLetter('A');document.getElementById('A').disabled = true;document.getElementById('A').style.opacity='0.5';" class = "btn btn-dark form-control" id = "A" >A</button>
+                </div>
+                <div class ="col-sm">
+                    <button type="submit" onclick="clickLetter('S');document.getElementById('S').disabled = true;document.getElementById('S').style.opacity='0.5';" class = "btn btn-dark form-control" id = "S" >S</button>
+                </div>
+                <div class ="col-sm">
+                    <button type="submit" onclick="clickLetter('D');document.getElementById('D').disabled = true;document.getElementById('D').style.opacity='0.5';" class = "btn btn-dark form-control" id = "D" >D</button>
+                </div>
+                <div class ="col-sm">
+                    <button type="submit" onclick="clickLetter('F');document.getElementById('F').disabled = true;document.getElementById('F').style.opacity='0.5';" class = "btn btn-dark form-control" id = "F" >F</button>
+                </div>
+                <div class ="col-sm">
+                    <button type="submit" onclick="clickLetter('G');document.getElementById('G').disabled = true;document.getElementById('G').style.opacity='0.5';" class = "btn btn-dark form-control" id = "G" >G</button>
+                </div>
+                <div class ="col-sm">
+                    <button type="submit" onclick="clickLetter('H');document.getElementById('H').disabled = true;document.getElementById('H').style.opacity='0.5';" class = "btn btn-dark form-control" id = "H" >H</button>
+                </div>
+                <div class ="col-sm">
+                    <button type="submit" onclick="clickLetter('J');document.getElementById('J').disabled = true;document.getElementById('J').style.opacity='0.5';" class = "btn btn-dark form-control" id = "J" >J</button>
+                </div>
+                <div class ="col-sm">
+                    <button type="submit" onclick="clickLetter('K');document.getElementById('K').disabled = true;document.getElementById('K').style.opacity='0.5';" class = "btn btn-dark form-control" id = "K" >K</button>
+                </div>
+                <div class ="col-sm">
+                    <button type="submit" onclick="clickLetter('L');document.getElementById('L').disabled = true;document.getElementById('L').style.opacity='0.5';" class = "btn btn-dark form-control" id = "L" >L</button>
+                </div>
+            </div>
+            <div class="row"> <!--ROW 3-->
+                <div class ="col-sm">
+                    <button type="submit" onclick="clickLetter('Z');document.getElementById('Z').disabled = true;document.getElementById('Z').style.opacity='0.5';" class = "btn btn-dark form-control" id = "Z" >Z</button>
+                </div>
+                <div class ="col-sm">
+                    <button type="submit" onclick="clickLetter('X');document.getElementById('X').disabled = true;document.getElementById('X').style.opacity='0.5';" class = "btn btn-dark form-control" id = "X" >X</button>
+                </div>
+                <div class ="col-sm">
+                    <button type="submit" onclick="clickLetter('C');document.getElementById('C').disabled = true;document.getElementById('C').style.opacity='0.5';" class = "btn btn-dark form-control" id = "C" >C</button>
+                </div>
+                <div class ="col-sm">
+                    <button type="submit" onclick="clickLetter('V');document.getElementById('V').disabled = true;document.getElementById('V').style.opacity='0.5';" class = "btn btn-dark form-control" id = "V" >V</button>
+                </div>
+                <div class ="col-sm">
+                    <button type="submit" onclick="clickLetter('B');document.getElementById('B').disabled = true;document.getElementById('B').style.opacity='0.5';" class = "btn btn-dark form-control" id = "B" >B</button>
+                </div>
+                <div class ="col-sm">
+                    <button type="submit" onclick="clickLetter('N');document.getElementById('N').disabled = true;document.getElementById('N').style.opacity='0.5';" class = "btn btn-dark form-control" id = "N" >N</button>
+                </div>
+                <div class ="col-sm">
+                    <button type="submit" onclick="clickLetter('M');document.getElementById('M').disabled = true;document.getElementById('M').style.opacity='0.5';" class = "btn btn-dark form-control" id = "M" >M</button>
+                </div>
+                <div class ="col-sm">
+                    <button onclick="clickStartGame()" class = "btn btn-primary form-control" id = "START" >START</button>
+                </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+</body>
+
+</html>

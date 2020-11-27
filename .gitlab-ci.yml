@@ -1,0 +1,169 @@
+stages:
+  - build
+  - test
+  - review
+  - staging
+  - production
+  - cleanup
+
+variables:
+  KUBE_NAMESPACE: $CI_PROJECT_NAME-$CI_PROJECT_ID-$CI_ENVIRONMENT_SLUG
+  KUBE_SECRET_REGISTRY_NAME: gitlab-registry
+
+  KUBERNETES_VERSION: 1.16.3
+  HELM_VERSION: 3.0.2
+
+default:
+  image: alpine:latest
+
+.deploy: &deploy
+  script:
+    - |
+      echo "Installing tools..."
+      apk add -U openssl curl tar gzip bash ca-certificates git
+
+      curl https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz | tar zx
+      mv linux-amd64/helm /usr/bin/
+      helm version
+
+      curl -L -o /usr/bin/kubectl "https://storage.googleapis.com/kubernetes-release/release/v${KUBERNETES_VERSION}/bin/linux/amd64/kubectl"
+      chmod +x /usr/bin/kubectl
+      kubectl version --client
+
+    - |
+      echo "Set kubeconfig..."
+      export KUBECONFIG=$KUBE_CONFIG
+
+    - |
+      echo "Creating namespace...";
+      if [ -z "$(kubectl get namespace $KUBE_NAMESPACE)" ];
+      then
+        kubectl create namespace $KUBE_NAMESPACE;
+      fi
+
+    - |
+      echo "Creating registry credentials...";
+      if [ -z "$(kubectl -n $KUBE_NAMESPACE get secret $KUBE_SECRET_REGISTRY_NAME)" ];
+      then
+        kubectl create -n $KUBE_NAMESPACE secret docker-registry $KUBE_SECRET_REGISTRY_NAME \
+          --docker-server=$CI_REGISTRY \
+          --docker-username=$CI_REGISTRY_USER \
+          --docker-password=$CI_REGISTRY_PASSWORD \
+          --docker-email=michael.kirilov@gmail.com;
+      else
+        kubectl -n $KUBE_NAMESPACE delete secret $KUBE_SECRET_REGISTRY_NAME;
+        kubectl create -n $KUBE_NAMESPACE secret docker-registry $KUBE_SECRET_REGISTRY_NAME \
+          --docker-server=$CI_REGISTRY \
+          --docker-username=$CI_REGISTRY_USER \
+          --docker-password=$CI_REGISTRY_PASSWORD \
+          --docker-email=michael.kirilov@gmail.com;
+      fi
+
+    - |
+      echo "Determining the environment..."
+      export IMAGE_REPO=$CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG
+      export IMAGE_TAG=$CI_COMMIT_SHA
+
+    - |
+      echo "Packaging chart..."
+      helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+      helm dependency update chart/
+      helm package chart/ --version=0.0.0 --app-version=$IMAGE_TAG
+
+    - |
+      helm upgrade --install $CI_PROJECT_NAME crowapp-0.0.0.tgz \
+        --namespace $KUBE_NAMESPACE \
+        --set image.repository=$IMAGE_REPO \
+        --set imagePullSecrets[0].name=$KUBE_SECRET_REGISTRY_NAME \
+        --set ingress.enabled=true \
+        --set ingress.hosts[0].host=$INGRESS_DOMAIN \
+        --set ingress.hosts[0].paths[0]=/
+      kubectl rollout status -n $KUBE_NAMESPACE deployment $CI_PROJECT_NAME-crowapp;
+
+docker_image:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - echo "Building docker image..."
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - |
+      export IMAGE_REPO=$CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG
+      export IMAGE_TAG=$CI_COMMIT_SHA
+      rm -rf .dockerignore
+      /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --build-arg SSH_KEY_NUCLEUS="${DEPLOY_KEY_NUCLEUS}" --destination $IMAGE_REPO:$IMAGE_TAG
+  only:
+    refs:
+      - branches
+      - tags
+
+unit_tests:
+  image: mike314/boost_cpp:1.0.1
+  script:
+    - make test
+    - ./bin/test
+  only:
+    refs:
+      - branches
+      - tags
+
+review_app:
+  stage: review
+  variables:
+    INGRESS_DOMAIN: $CI_ENVIRONMENT_SLUG.$KUBE_INGRESS_BASE_DOMAIN
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    url: http://$CI_ENVIRONMENT_SLUG.$KUBE_INGRESS_BASE_DOMAIN
+    on_stop: stop_review_app
+  <<: *deploy
+  only:
+    refs:
+      - branches
+  except:
+    refs:
+      - master
+
+stop_review_app:
+  stage: cleanup
+  variables:
+    GIT_STRATEGY: none
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    action: stop
+  script:
+    - echo "Review stop job..."
+    - apk add -U openssl curl tar gzip bash ca-certificates git
+    - curl https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz | tar zx
+    - mv linux-amd64/helm /usr/bin/
+    - helm version
+    - curl -L -o /usr/bin/kubectl "https://storage.googleapis.com/kubernetes-release/release/v${KUBERNETES_VERSION}/bin/linux/amd64/kubectl"
+    - chmod +x /usr/bin/kubectl
+    - kubectl version --client
+    - echo ""
+    - |
+      echo "Set kubeconfig..."
+      export KUBECONFIG=$KUBE_CONFIG
+    - |
+    - helm delete $CI_PROJECT_NAME -n $KUBE_NAMESPACE
+    - kubectl delete namespace $KUBE_NAMESPACE
+  when: manual
+  allow_failure: true
+  only:
+    refs:
+      - branches
+  except:
+    refs:
+      - master
+
+.production:
+  stage: production
+  variables:
+    INGRESS_DOMAIN: $KUBE_INGRESS_BASE_DOMAIN
+  environment:
+    name: production
+    url: http://$KUBE_INGRESS_BASE_DOMAIN
+  <<: *deploy
+  only:
+    refs:
+      - master
