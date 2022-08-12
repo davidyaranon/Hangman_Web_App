@@ -1,11 +1,3 @@
-# ================================== #
-#  Web Server Makefile               #
-#  Written by Angelo Kyrilov         #
-#                                    #
-#  Computer Science and Engineering  #
-#  University of California, Merced  #
-#                                    #
-# ================================== #
 
 # Specify the compiler
 CC = g++
